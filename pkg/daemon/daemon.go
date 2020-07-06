@@ -1,3 +1,7 @@
+// The daemon package controls all interaction with the Docker daemon. Any
+// options for containers, images, networks, and volumes are all routed
+// through this package.
+
 package daemon
 
 import (
@@ -22,9 +26,9 @@ type DockerInterface struct {
 	Volumes    volume.VolumeListOKBody
 }
 
-// Refresh updates the given DockerInterface's fields with the latest
-// information from the Docker API.
-func (di *DockerInterface) Refresh(ctx context.Context) error {
+// RefreshContainers updates the DockerInterface's Containers field
+// with the latest information from the Docker API.
+func (di *DockerInterface) RefreshContainers(ctx context.Context) error {
 	var err error
 
 	di.Containers, err = di.Client.ContainerList(
@@ -33,43 +37,94 @@ func (di *DockerInterface) Refresh(ctx context.Context) error {
 		return fmt.Errorf("Failed to fetch containers: %s", err)
 	}
 
+	return nil
+}
+
+// RefreshImages updates the DockerInterface's Images field with the
+// latest information from the Docker API.
+func (di *DockerInterface) RefreshImages(ctx context.Context) error {
+	var err error
+
 	di.Images, err = di.Client.ImageList(ctx, types.ImageListOptions{})
 	if err != nil {
 		return fmt.Errorf("Failed to fetch images: %s", err)
 	}
+
+	return nil
+}
+
+// RefreshInfo updates the DockerInterface's Info field with the
+// latest information from the Docker API.
+func (di *DockerInterface) RefreshInfo(ctx context.Context) error {
+	var err error
 
 	di.Info, err = di.Client.Info(ctx)
 	if err != nil {
 		return fmt.Errorf("Failed to fetch client information: %s", err)
 	}
 
+	return nil
+}
+
+// RefreshNetworks updates the DockerInterface's Networks field with the
+// latest information from the Docker API.
+func (di *DockerInterface) RefreshNetworks(ctx context.Context) error {
+	var err error
+
 	di.Networks, err = di.Client.NetworkList(ctx, types.NetworkListOptions{})
 	if err != nil {
 		return fmt.Errorf("Failed to fetch networks: %s", err)
 	}
+
+	return nil
+}
+
+// RefreshVolumes updates the DockerInterface's Volumes field with the
+// latest information from the Docker API.
+func (di *DockerInterface) RefreshVolumes(ctx context.Context) error {
+	var err error
 
 	di.Volumes, err = di.Client.VolumeList(ctx, filters.Args{})
 	if err != nil {
 		return fmt.Errorf("Failed to fetch volumes: %s", err)
 	}
 
-	return err
+	return nil
 }
 
 // NewInterface returns a DockerInterface with information about the
 // Docker daemon and all containers, images, networks, and volumes.
 func NewInterface(ctx context.Context) (*DockerInterface, error) {
-	di := &DockerInterface{}
 	var err error
+	di := &DockerInterface{}
 
 	di.Client, err = cli.NewClientWithOpts(
 		cli.FromEnv, cli.WithAPIVersionNegotiation())
-
 	if err != nil {
 		return nil, fmt.Errorf("Failed to initialize client: %s", err)
 	}
 
-	err = di.Refresh(ctx)
+	err = di.RefreshContainers(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = di.RefreshImages(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = di.RefreshInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = di.RefreshNetworks(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = di.RefreshVolumes(ctx)
 	if err != nil {
 		return nil, err
 	}
