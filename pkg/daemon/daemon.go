@@ -31,9 +31,8 @@ type DockerInterface struct {
 func (di *DockerInterface) RefreshContainers(ctx context.Context) error {
 	var err error
 
-	di.Containers, err = di.Client.ContainerList(
-		ctx, types.ContainerListOptions{})
-	if err != nil {
+	if di.Containers, err = di.Client.ContainerList(
+		ctx, types.ContainerListOptions{}); err != nil {
 		return fmt.Errorf("Failed to fetch containers: %s", err)
 	}
 
@@ -45,8 +44,8 @@ func (di *DockerInterface) RefreshContainers(ctx context.Context) error {
 func (di *DockerInterface) RefreshImages(ctx context.Context) error {
 	var err error
 
-	di.Images, err = di.Client.ImageList(ctx, types.ImageListOptions{})
-	if err != nil {
+	if di.Images, err = di.Client.ImageList(
+		ctx, types.ImageListOptions{}); err != nil {
 		return fmt.Errorf("Failed to fetch images: %s", err)
 	}
 
@@ -58,8 +57,7 @@ func (di *DockerInterface) RefreshImages(ctx context.Context) error {
 func (di *DockerInterface) RefreshInfo(ctx context.Context) error {
 	var err error
 
-	di.Info, err = di.Client.Info(ctx)
-	if err != nil {
+	if di.Info, err = di.Client.Info(ctx); err != nil {
 		return fmt.Errorf("Failed to fetch client information: %s", err)
 	}
 
@@ -71,8 +69,8 @@ func (di *DockerInterface) RefreshInfo(ctx context.Context) error {
 func (di *DockerInterface) RefreshNetworks(ctx context.Context) error {
 	var err error
 
-	di.Networks, err = di.Client.NetworkList(ctx, types.NetworkListOptions{})
-	if err != nil {
+	if di.Networks, err = di.Client.NetworkList(
+		ctx, types.NetworkListOptions{}); err != nil {
 		return fmt.Errorf("Failed to fetch networks: %s", err)
 	}
 
@@ -84,8 +82,7 @@ func (di *DockerInterface) RefreshNetworks(ctx context.Context) error {
 func (di *DockerInterface) RefreshVolumes(ctx context.Context) error {
 	var err error
 
-	di.Volumes, err = di.Client.VolumeList(ctx, filters.Args{})
-	if err != nil {
+	if di.Volumes, err = di.Client.VolumeList(ctx, filters.Args{}); err != nil {
 		return fmt.Errorf("Failed to fetch volumes: %s", err)
 	}
 
@@ -104,28 +101,23 @@ func NewInterface(ctx context.Context) (*DockerInterface, error) {
 		return nil, fmt.Errorf("Failed to initialize client: %s", err)
 	}
 
-	err = di.RefreshContainers(ctx)
-	if err != nil {
+	if err = di.RefreshContainers(ctx); err != nil {
 		return nil, err
 	}
 
-	err = di.RefreshImages(ctx)
-	if err != nil {
+	if err = di.RefreshImages(ctx); err != nil {
 		return nil, err
 	}
 
-	err = di.RefreshInfo(ctx)
-	if err != nil {
+	if err = di.RefreshInfo(ctx); err != nil {
 		return nil, err
 	}
 
-	err = di.RefreshNetworks(ctx)
-	if err != nil {
+	if err = di.RefreshNetworks(ctx); err != nil {
 		return nil, err
 	}
 
-	err = di.RefreshVolumes(ctx)
-	if err != nil {
+	if err = di.RefreshVolumes(ctx); err != nil {
 		return nil, err
 	}
 
