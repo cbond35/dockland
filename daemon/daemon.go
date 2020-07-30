@@ -18,22 +18,32 @@ import (
 // the Docker daemon and associated containers, images, networks,
 // and volumes.
 type DockerInterface struct {
-	Client     *client.Client
-	Containers []types.Container
-	Images     []types.ImageSummary
-	Info       types.Info
-	Networks   []types.NetworkResource
-	Volumes    volume.VolumeListOKBody
+	Client            *client.Client
+	Images            []types.ImageSummary
+	Info              types.Info
+	Networks          []types.NetworkResource
+	RunningContainers []types.Container
+	StoppedContainers []types.Container
+	Volumes           volume.VolumeListOKBody
 }
 
-// RefreshContainers updates the DockerInterface's Containers field
+// RefreshContainers updates the DockerInterface's Containers fields
 // with the latest information from the Docker API.
 func (di *DockerInterface) RefreshContainers(ctx context.Context) error {
 	var err error
+	var containers []types.Container
 
-	if di.Containers, err = di.Client.ContainerList(
-		ctx, types.ContainerListOptions{}); err != nil {
+	if containers, err = di.Client.ContainerList(
+		ctx, types.ContainerListOptions{All: true}); err != nil {
 		return fmt.Errorf("Failed to fetch containers: %s", err)
+	}
+
+	for _, container := range containers {
+		if container.State == "running" {
+			di.RunningContainers = append(RunningContainers, container)
+		} else {
+			di.StoppedContainers = append(StoppedContainers, container)
+		}
 	}
 
 	return nil
@@ -45,7 +55,7 @@ func (di *DockerInterface) RefreshImages(ctx context.Context) error {
 	var err error
 
 	if di.Images, err = di.Client.ImageList(
-		ctx, types.ImageListOptions{}); err != nil {
+		ctx, types.ImageListOptions{All: true}); err != nil {
 		return fmt.Errorf("Failed to fetch images: %s", err)
 	}
 
