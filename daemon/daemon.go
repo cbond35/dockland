@@ -11,14 +11,14 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/volume"
-	cli "github.com/docker/docker/client"
+	"github.com/docker/docker/client"
 )
 
 // DockerInterface is our primary source of information about
 // the Docker daemon and associated containers, images, networks,
 // and volumes.
 type DockerInterface struct {
-	Client     *cli.Client
+	Client     *client.Client
 	Containers []types.Container
 	Images     []types.ImageSummary
 	Info       types.Info
@@ -95,8 +95,8 @@ func NewInterface(ctx context.Context) (*DockerInterface, error) {
 	var err error
 	di := &DockerInterface{}
 
-	di.Client, err = cli.NewClientWithOpts(
-		cli.FromEnv, cli.WithAPIVersionNegotiation())
+	di.Client, err = client.NewClientWithOpts(
+		client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, fmt.Errorf("Failed to initialize client: %s", err)
 	}
