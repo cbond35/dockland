@@ -16,16 +16,19 @@ func main() {
 	}
 
 	di.StartContainer(ctx, 0)
-	di.StartContainer(ctx, 1)
+	di.StartContainer(ctx, 0)
 
-	for _, container := range di.RunningContainers {
+	di.RestartContainer(ctx, 0)
+	di.RestartContainer(ctx, 0)
+
+	for _, container := range di.Running() {
 		fmt.Printf("%s %s\n", container.ID, container.Image)
 	}
 
 	di.StopContainer(ctx, 0)
-	di.StopContainer(ctx, 1)
+	di.StopContainer(ctx, 0)
 
-	for _, container := range di.StoppedContainers {
+	for _, container := range di.Stopped() {
 		fmt.Printf("%s %s\n", container.ID, container.Image)
 	}
 }

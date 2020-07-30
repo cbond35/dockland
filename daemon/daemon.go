@@ -38,11 +38,14 @@ func (di *DockerInterface) RefreshContainers(ctx context.Context) error {
 		return fmt.Errorf("Failed to fetch containers: %s", err)
 	}
 
+	di.RunningContainers = nil
+	di.StoppedContainers = nil
+
 	for _, container := range containers {
 		if container.State == "running" {
-			di.RunningContainers = append(RunningContainers, container)
+			di.RunningContainers = append(di.RunningContainers, container)
 		} else {
-			di.StoppedContainers = append(StoppedContainers, container)
+			di.StoppedContainers = append(di.StoppedContainers, container)
 		}
 	}
 
