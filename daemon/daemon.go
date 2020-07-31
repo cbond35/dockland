@@ -44,7 +44,7 @@ func (di *DockerInterface) RefreshContainers(ctx context.Context) error {
 	for _, container := range containers {
 		if container.State == "running" {
 			di.RunningContainers = append(di.RunningContainers, container)
-		} else {
+		} else if container.State == "exited" {
 			di.StoppedContainers = append(di.StoppedContainers, container)
 		}
 	}
