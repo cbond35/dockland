@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/cbbond/dockland/daemon"
 )
@@ -14,23 +15,25 @@ func main() {
 		panic(err)
 	}
 
-	if err = di.PruneContainers(ctx); err != nil {
-		panic(err)
+	opts := map[string]string{
+		"image":    "nginx",
+		"name":     "nginx_box",
+		"port":     "80",
+		"hostPort": "80",
 	}
 
-	if err = di.PruneImages(ctx); err != nil {
-		panic(err)
-	}
+	config := di.NewContainerConfig(opts)
 
-	results, searchErr := di.SearchImage(ctx, "debian")
-
-	if searchErr != nil {
-		panic(err)
-	}
-
-	err = di.PullImage(ctx, results[0].Name)
-
+	id, err := di.NewContainer(ctx, config)
 	if err != nil {
 		panic(err)
+	}
+
+	if err := di.StartContainer(ctx, id); err != nil {
+		panic(err)
+	}
+
+	for i := 0; i < di.NumContainers(); i++ {
+		fmt.Printf("%s\n", di.ContainerList()[i].Names[0])
 	}
 }

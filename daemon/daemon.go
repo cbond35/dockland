@@ -18,35 +18,22 @@ import (
 // the Docker daemon and associated containers, images, networks,
 // and volumes.
 type DockerInterface struct {
-	Client            *client.Client
-	Images            []types.ImageSummary
-	Info              types.Info
-	Networks          []types.NetworkResource
-	RunningContainers []types.Container
-	StoppedContainers []types.Container
-	Volumes           volume.VolumeListOKBody
+	Client     *client.Client
+	Containers []types.Container
+	Images     []types.ImageSummary
+	Info       types.Info
+	Networks   []types.NetworkResource
+	Volumes    volume.VolumeListOKBody
 }
 
 // RefreshContainers updates the DockerInterface's Containers fields
 // with the latest information from the Docker API.
 func (di *DockerInterface) RefreshContainers(ctx context.Context) error {
 	var err error
-	var containers []types.Container
 
-	if containers, err = di.Client.ContainerList(
+	if di.Containers, err = di.Client.ContainerList(
 		ctx, types.ContainerListOptions{All: true}); err != nil {
 		return fmt.Errorf("failed to fetch containers: %s", err)
-	}
-
-	di.RunningContainers = nil
-	di.StoppedContainers = nil
-
-	for _, container := range containers {
-		if container.State == "running" {
-			di.RunningContainers = append(di.RunningContainers, container)
-		} else if container.State == "exited" {
-			di.StoppedContainers = append(di.StoppedContainers, container)
-		}
 	}
 
 	return nil

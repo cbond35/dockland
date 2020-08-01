@@ -29,14 +29,8 @@ func (di *DockerInterface) PullImage(ctx context.Context, img string) error {
 	return di.RefreshImages(ctx)
 }
 
-// RemoveImage removes the image at idx in the image list.
-func (di *DockerInterface) RemoveImage(ctx context.Context, idx int) error {
-	if idx < 0 || idx >= di.NumImages() {
-		return fmt.Errorf("invalid image index %d", idx)
-	}
-
-	id := di.ImageList()[idx].ID
-
+// RemoveImage removes an image.
+func (di *DockerInterface) RemoveImage(ctx context.Context, id string) error {
 	if _, err := di.Client.ImageRemove(ctx, id, types.ImageRemoveOptions{}); err != nil {
 		return fmt.Errorf("failed to remove image: %s", err)
 	}
