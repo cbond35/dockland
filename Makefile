@@ -1,4 +1,5 @@
 BIN=dockland
+export GO111MODULE=on
 
 all: build
 
@@ -7,4 +8,3 @@ clean:
 
 build: clean
 	go build -o $(BIN)
-

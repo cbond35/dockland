@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/cbbond/dockland/daemon"
 )
@@ -15,20 +14,23 @@ func main() {
 		panic(err)
 	}
 
-	di.StartContainer(ctx, 0)
-	di.StartContainer(ctx, 0)
-
-	di.RestartContainer(ctx, 0)
-	di.RestartContainer(ctx, 0)
-
-	for _, container := range di.Running() {
-		fmt.Printf("%s %s\n", container.ID, container.Image)
+	if err = di.PruneContainers(ctx); err != nil {
+		panic(err)
 	}
 
-	di.StopContainer(ctx, 0)
-	di.StopContainer(ctx, 0)
+	if err = di.PruneImages(ctx); err != nil {
+		panic(err)
+	}
 
-	for _, container := range di.Stopped() {
-		fmt.Printf("%s %s\n", container.ID, container.Image)
+	results, searchErr := di.SearchImage(ctx, "debian")
+
+	if searchErr != nil {
+		panic(err)
+	}
+
+	err = di.PullImage(ctx, results[0].Name)
+
+	if err != nil {
+		panic(err)
 	}
 }

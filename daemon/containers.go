@@ -6,6 +6,7 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 )
 
@@ -35,8 +36,7 @@ func (di *DockerInterface) NewContainer(
 	return nil
 }
 
-// RestartContainer restarts the container at idx in the DockerInterface's
-// slice of running containers.
+// RestartContainer restarts the running container at idx.
 func (di *DockerInterface) RestartContainer(ctx context.Context, idx int) error {
 	if idx < 0 || idx >= di.NumRunning() {
 		return fmt.Errorf("invalid container index %d", idx)
@@ -77,6 +77,15 @@ func (di *DockerInterface) StartContainer(ctx context.Context, idx int) error {
 	if err := di.Client.ContainerStart(
 		ctx, id, types.ContainerStartOptions{}); err != nil {
 		return fmt.Errorf("failed to start container %s: %s", id, err)
+	}
+
+	return di.RefreshContainers(ctx)
+}
+
+// PruneContainers deletes any unused container data.
+func (di *DockerInterface) PruneContainers(ctx context.Context) error {
+	if _, err := di.Client.ContainersPrune(ctx, filters.Args{}); err != nil {
+		return fmt.Errorf("failed to prune containers: %s", err)
 	}
 
 	return di.RefreshContainers(ctx)
