@@ -16,24 +16,15 @@ func main() {
 	}
 
 	opts := map[string]string{
-		"image":    "nginx",
-		"name":     "nginx_box",
-		"port":     "80",
-		"hostPort": "80",
+		"name": "test_network",
 	}
 
-	config := di.NewContainerConfig(opts)
-
-	id, err := di.NewContainer(ctx, config)
+	_, err = di.NewNetwork(ctx, opts)
 	if err != nil {
 		panic(err)
 	}
 
-	if err := di.StartContainer(ctx, id); err != nil {
-		panic(err)
-	}
-
-	for i := 0; i < di.NumContainers(); i++ {
-		fmt.Printf("%s\n", di.ContainerList()[i].Names[0])
+	for i := 0; i < di.NumNetworks(); i++ {
+		fmt.Printf("%s\n", di.Networks[i].Name)
 	}
 }

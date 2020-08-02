@@ -32,13 +32,13 @@ func (di *DockerInterface) PullImage(ctx context.Context, img string) error {
 // RemoveImage removes an image.
 func (di *DockerInterface) RemoveImage(ctx context.Context, id string) error {
 	if _, err := di.Client.ImageRemove(ctx, id, types.ImageRemoveOptions{}); err != nil {
-		return fmt.Errorf("failed to remove image: %s", err)
+		return fmt.Errorf("failed to remove image %s: %s", id[:idLen], err)
 	}
 
 	return di.RefreshImages(ctx)
 }
 
-// SearchImages searches a remote registry for term.
+// SearchImages searches the registry for term.
 func (di *DockerInterface) SearchImage(ctx context.Context, term string) ([]registry.SearchResult, error) {
 	results, err := di.Client.ImageSearch(ctx, term, types.ImageSearchOptions{Limit: 10})
 
@@ -58,12 +58,7 @@ func (di *DockerInterface) PruneImages(ctx context.Context) error {
 	return di.RefreshImages(ctx)
 }
 
-// ImageList returns a list of all images in the Docker host.
-func (di *DockerInterface) ImageList() []types.ImageSummary {
-	return di.Images
-}
-
 // NumImages return the number of images.
 func (di *DockerInterface) NumImages() int {
-	return len(di.ImageList())
+	return len(di.Images)
 }
