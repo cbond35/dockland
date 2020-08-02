@@ -24,7 +24,7 @@ func newNetworkConfig(opts map[string]string) *networkConfig {
 	}
 
 	config.Config.Driver = opts["driver"] // Defaults to bridge/local.
-	config.Config.Scope = opts["local"]
+	config.Config.Scope = opts["scope"]
 	config.Config.Attachable = true
 
 	if opts["ipv6"] != "" {
