@@ -71,8 +71,7 @@ func (di *DockerInterface) NewContainer(ctx context.Context, opts map[string]str
 		return "", fmt.Errorf("failed to create container: %s", err)
 	}
 
-	di.RefreshContainers(ctx)
-	return response.ID, nil
+	return response.ID, di.RefreshContainers(ctx)
 }
 
 // RestartContainer restarts a running container.

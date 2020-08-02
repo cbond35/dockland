@@ -16,15 +16,15 @@ func main() {
 	}
 
 	opts := map[string]string{
-		"name": "test_network",
+		"name": "test_volume",
 	}
 
-	_, err = di.NewNetwork(ctx, opts)
+	_, err = di.NewVolume(ctx, opts)
 	if err != nil {
 		panic(err)
 	}
 
-	for i := 0; i < di.NumNetworks(); i++ {
-		fmt.Printf("%s\n", di.Networks[i].Name)
+	for i := 0; i < di.NumVolumes(); i++ {
+		fmt.Printf("%s\n", di.Volumes[i].Name)
 	}
 }

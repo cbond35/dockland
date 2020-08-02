@@ -26,7 +26,7 @@ type DockerInterface struct {
 	Images     []types.ImageSummary
 	Info       types.Info
 	Networks   []types.NetworkResource
-	Volumes    volume.VolumeListOKBody
+	Volumes    []*types.Volume
 }
 
 // RefreshContainers updates the DockerInterface's Containers fields
@@ -84,11 +84,13 @@ func (di *DockerInterface) RefreshNetworks(ctx context.Context) error {
 // latest information from the Docker API.
 func (di *DockerInterface) RefreshVolumes(ctx context.Context) error {
 	var err error
+	var volumeBody volume.VolumeListOKBody
 
-	if di.Volumes, err = di.Client.VolumeList(ctx, filters.Args{}); err != nil {
+	if volumeBody, err = di.Client.VolumeList(ctx, filters.Args{}); err != nil {
 		return fmt.Errorf("failed to fetch volumes: %s", err)
 	}
 
+	di.Volumes = volumeBody.Volumes
 	return nil
 }
 

@@ -56,8 +56,7 @@ func (di *DockerInterface) NewNetwork(ctx context.Context, opts map[string]strin
 		return "", fmt.Errorf("failed to create network: %s", err)
 	}
 
-	di.RefreshNetworks(ctx)
-	return response.ID, nil
+	return response.ID, di.RefreshNetworks(ctx)
 }
 
 // RemoveNetwork removes a network.
