@@ -60,6 +60,7 @@ func TestNewNetwork(t *testing.T) {
 
 	for _, table := range tables {
 		id, err := di.NewNetwork(ctx, table.opts)
+		defer di.RemoveNetwork(ctx, id)
 
 		if err != nil {
 			t.Errorf("%s", err)
@@ -72,12 +73,10 @@ func TestNewNetwork(t *testing.T) {
 			network.Name, network.Scope, network.Driver,
 			network.EnableIPv6, network.Ingress, network.Internal}
 
-		di.RemoveNetwork(ctx, id)
 		if got != want {
 			t.Fail()
 		}
 	}
-
 }
 
 // TestRemoveNetwork
