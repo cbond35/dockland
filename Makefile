@@ -1,10 +1,17 @@
 BIN=dockland
+BUILD=go build
+CLEAN=go clean
+TEST=go test
+
 export GO111MODULE=on
 
-all: build
+all: test build
+
+test:
+	$(TEST) ./... -v
 
 clean:
-	go clean
+	$(CLEAN)
 
 build: clean
-	go build -o $(BIN)
+	$(BUILD) -o $(BIN)
