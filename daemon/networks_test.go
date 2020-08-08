@@ -33,13 +33,6 @@ func getNetwork(id string) (types.NetworkResource, error) {
 
 // TestNewNetwork
 func TestNewNetwork(t *testing.T) {
-	ctx := context.TODO()
-	di, err := NewInterface(ctx)
-
-	if err != nil {
-		t.Errorf("%s", err)
-	}
-
 	tables := []struct {
 		opts   map[string]string
 		fields networkCompare
@@ -58,15 +51,24 @@ func TestNewNetwork(t *testing.T) {
 		},
 	}
 
+	ctx := context.TODO()
+	di, err := NewInterface(ctx)
+
+	if err != nil {
+		t.Errorf("got error: %s", err)
+	}
+
 	for _, table := range tables {
 		id, err := di.NewNetwork(ctx, table.opts)
+		if err != nil {
+			t.Errorf("got error: %s", err)
+		}
 		defer di.RemoveNetwork(ctx, id)
 
+		network, err := getNetwork(id)
 		if err != nil {
-			t.Errorf("%s", err)
+			t.Errorf("couldn't find network %s", id)
 		}
-
-		network, _ := getNetwork(id)
 
 		want := table.fields
 		got := networkCompare{
@@ -74,7 +76,7 @@ func TestNewNetwork(t *testing.T) {
 			network.EnableIPv6, network.Ingress, network.Internal}
 
 		if got != want {
-			t.Fail()
+			t.Errorf("networks do not match")
 		}
 	}
 }
@@ -85,21 +87,60 @@ func TestRemoveNetwork(t *testing.T) {
 	di, err := NewInterface(ctx)
 
 	if err != nil {
-		t.Errorf("%s", err)
+		t.Errorf("got error: %s", err)
 	}
 
-	testNetwork := map[string]string{"name": "test"}
-	want := di.NumNetworks()
+	testNetwork := map[string]string{"name": "test_network"}
+	want := di.NumNetworks() + 1
 
 	id, err := di.NewNetwork(ctx, testNetwork)
 
 	if err != nil {
+		t.Errorf("got error: %s", err)
+	}
+	if di.NumNetworks() != want {
 		t.Fail()
 	}
 
-	err = di.RemoveNetwork(ctx, id)
+	if err = di.RemoveNetwork(ctx, id); err != nil {
+		t.Errorf("got error: %s", err)
+	}
 
-	if err != nil || di.NumNetworks() != want {
-		t.Fail()
+	want--
+	if di.NumNetworks() != want {
+		t.Errorf("got %d for NumNetworks, got %d", di.NumNetworks(), want)
+	}
+}
+
+// TestConnectNetwork + TestDisconnectNetwork
+func TestConnectDisconnectNetwork(t *testing.T) {
+	ctx := context.TODO()
+	di, err := NewInterface(ctx)
+
+	if err != nil {
+		t.Errorf("got error: %s", err)
+	}
+
+	testNetwork := map[string]string{"name": "test_network"}
+	testContainer := map[string]string{"name": "test_container", "cmd": "bash"}
+
+	net_id, err := di.NewNetwork(ctx, testNetwork)
+	if err != nil {
+		t.Errorf("got error: %s", err)
+	}
+	defer di.RemoveNetwork(ctx, net_id)
+
+	con_id, err := di.NewContainer(ctx, testContainer)
+	if err != nil {
+		t.Errorf("got error: %s", err)
+	}
+	defer di.RemoveContainer(ctx, con_id)
+
+	if err := di.ConnectNetwork(ctx, net_id, con_id); err != nil {
+		t.Errorf("got error: %s", err)
+	}
+
+	if err := di.DisconnectNetwork(ctx, net_id, con_id); err != nil {
+		t.Errorf("got error: %s", err)
 	}
 }

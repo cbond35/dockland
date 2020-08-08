@@ -3,7 +3,6 @@ package daemon
 import (
 	"bufio"
 	"context"
-	"fmt"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -15,7 +14,7 @@ func (di *DockerInterface) PullImage(ctx context.Context, img string) error {
 	response, err := di.Client.ImagePull(ctx, img, types.ImagePullOptions{})
 
 	if err != nil {
-		return fmt.Errorf("failed to pull image: %s", err)
+		return err
 	}
 
 	scan := bufio.NewScanner(response)
@@ -23,7 +22,7 @@ func (di *DockerInterface) PullImage(ctx context.Context, img string) error {
 	}
 
 	if err := scan.Err(); err != nil {
-		return fmt.Errorf("failed to pull image: %s", err)
+		return err
 	}
 
 	return di.RefreshImages(ctx)
@@ -32,7 +31,7 @@ func (di *DockerInterface) PullImage(ctx context.Context, img string) error {
 // RemoveImage removes an image.
 func (di *DockerInterface) RemoveImage(ctx context.Context, id string) error {
 	if _, err := di.Client.ImageRemove(ctx, id, types.ImageRemoveOptions{}); err != nil {
-		return fmt.Errorf("failed to remove image %s: %s", id[:idLen], err)
+		return err
 	}
 
 	return di.RefreshImages(ctx)
@@ -43,7 +42,7 @@ func (di *DockerInterface) SearchImage(ctx context.Context, term string) ([]regi
 	results, err := di.Client.ImageSearch(ctx, term, types.ImageSearchOptions{Limit: 10})
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to search for image %s: %s", term, err)
+		return nil, err
 	}
 
 	return results, nil
@@ -52,7 +51,7 @@ func (di *DockerInterface) SearchImage(ctx context.Context, term string) ([]regi
 // PruneImages removes unused image data.
 func (di *DockerInterface) PruneImages(ctx context.Context) error {
 	if _, err := di.Client.ImagesPrune(ctx, filters.Args{}); err != nil {
-		return fmt.Errorf("failed to prune images: %s", err)
+		return err
 	}
 
 	return di.RefreshImages(ctx)
