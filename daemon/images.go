@@ -9,6 +9,9 @@ import (
 	"github.com/docker/docker/api/types/registry"
 )
 
+// Maximum number of results from a search.
+var MaxResults int = 10
+
 // PullImage pulls the image with the given img name.
 func (di *DockerInterface) PullImage(ctx context.Context, img string) error {
 	response, err := di.Client.ImagePull(ctx, img, types.ImagePullOptions{})
@@ -28,7 +31,7 @@ func (di *DockerInterface) PullImage(ctx context.Context, img string) error {
 	return di.RefreshImages(ctx)
 }
 
-// RemoveImage removes an image.
+// RemoveImage removes an image. id can be the ID or the image name.
 func (di *DockerInterface) RemoveImage(ctx context.Context, id string) error {
 	if _, err := di.Client.ImageRemove(ctx, id, types.ImageRemoveOptions{}); err != nil {
 		return err
@@ -39,7 +42,7 @@ func (di *DockerInterface) RemoveImage(ctx context.Context, id string) error {
 
 // SearchImages searches the registry for term.
 func (di *DockerInterface) SearchImage(ctx context.Context, term string) ([]registry.SearchResult, error) {
-	results, err := di.Client.ImageSearch(ctx, term, types.ImageSearchOptions{Limit: 10})
+	results, err := di.Client.ImageSearch(ctx, term, types.ImageSearchOptions{Limit: MaxResults})
 
 	if err != nil {
 		return nil, err
@@ -48,7 +51,7 @@ func (di *DockerInterface) SearchImage(ctx context.Context, term string) ([]regi
 	return results, nil
 }
 
-// PruneImages removes unused image data.
+// PruneImages removes dangling images.
 func (di *DockerInterface) PruneImages(ctx context.Context) error {
 	if _, err := di.Client.ImagesPrune(ctx, filters.Args{}); err != nil {
 		return err

@@ -13,9 +13,6 @@ import (
 	"github.com/docker/docker/client"
 )
 
-// ID length for logging.
-var idLen int = 12
-
 // DockerInterface is our primary source of information about
 // the Docker daemon and associated containers, images, networks,
 // and volumes.
