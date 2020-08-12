@@ -1,7 +1,7 @@
 BIN=dockland
 BUILD=go build
 CLEAN=go clean
-TEST=go test -cover
+TEST=go test
 
 export GO111MODULE=on
 

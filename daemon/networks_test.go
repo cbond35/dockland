@@ -2,7 +2,6 @@ package daemon
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/docker/docker/api/types"
@@ -19,16 +18,16 @@ type networkCompare struct {
 }
 
 // Get network resource by id.
-func getNetwork(id string) (types.NetworkResource, error) {
+func getNetwork(id string) types.NetworkResource {
 	di, _ := NewInterface(context.TODO())
 
 	for _, network := range di.Networks {
 		if network.ID == id {
-			return network, nil
+			return network
 		}
 	}
 
-	return types.NetworkResource{}, fmt.Errorf("network %s not found", id[:idLen])
+	return types.NetworkResource{}
 }
 
 // TestNewNetwork
@@ -52,23 +51,17 @@ func TestNewNetwork(t *testing.T) {
 	}
 
 	ctx := context.TODO()
-	di, err := NewInterface(ctx)
-
-	if err != nil {
-		t.Errorf("got error: %s", err)
-	}
+	di, _ := NewInterface(ctx)
 
 	for _, table := range tables {
 		id, err := di.NewNetwork(ctx, table.opts)
+
 		if err != nil {
-			t.Errorf("got error: %s", err)
+			t.Errorf("got error creating network: %s", err)
 		}
 		defer di.RemoveNetwork(ctx, id)
 
-		network, err := getNetwork(id)
-		if err != nil {
-			t.Errorf("couldn't find network %s", id)
-		}
+		network := getNetwork(id)
 
 		want := table.fields
 		got := networkCompare{
@@ -76,7 +69,7 @@ func TestNewNetwork(t *testing.T) {
 			network.EnableIPv6, network.Ingress, network.Internal}
 
 		if got != want {
-			t.Errorf("networks do not match")
+			t.Errorf("networks do not match for network %s", table.opts["name"])
 		}
 	}
 }
@@ -84,63 +77,61 @@ func TestNewNetwork(t *testing.T) {
 // TestRemoveNetwork
 func TestRemoveNetwork(t *testing.T) {
 	ctx := context.TODO()
-	di, err := NewInterface(ctx)
-
-	if err != nil {
-		t.Errorf("got error: %s", err)
-	}
+	di, _ := NewInterface(ctx)
+	want := di.NumNetworks()
 
 	testNetwork := map[string]string{"name": "test_network"}
-	want := di.NumNetworks() + 1
+	id, _ := di.NewNetwork(ctx, testNetwork)
 
-	id, err := di.NewNetwork(ctx, testNetwork)
-
-	if err != nil {
-		t.Errorf("got error: %s", err)
+	if err := di.RemoveNetwork(ctx, id); err != nil {
+		t.Errorf("got error removing network: %s", err)
 	}
+
 	if di.NumNetworks() != want {
-		t.Fail()
-	}
-
-	if err = di.RemoveNetwork(ctx, id); err != nil {
-		t.Errorf("got error: %s", err)
-	}
-
-	want--
-	if di.NumNetworks() != want {
-		t.Errorf("got %d for NumNetworks, got %d", di.NumNetworks(), want)
+		t.Errorf("got %d networks, want %d", di.NumNetworks(), want)
 	}
 }
 
 // TestConnectNetwork + TestDisconnectNetwork
 func TestConnectDisconnectNetwork(t *testing.T) {
 	ctx := context.TODO()
-	di, err := NewInterface(ctx)
-
-	if err != nil {
-		t.Errorf("got error: %s", err)
-	}
+	di, _ := NewInterface(ctx)
 
 	testNetwork := map[string]string{"name": "test_network"}
 	testContainer := map[string]string{"name": "test_container", "cmd": "bash"}
 
-	net_id, err := di.NewNetwork(ctx, testNetwork)
-	if err != nil {
-		t.Errorf("got error: %s", err)
-	}
+	net_id, _ := di.NewNetwork(ctx, testNetwork)
 	defer di.RemoveNetwork(ctx, net_id)
 
-	con_id, err := di.NewContainer(ctx, testContainer)
-	if err != nil {
-		t.Errorf("got error: %s", err)
-	}
+	con_id, _ := di.NewContainer(ctx, testContainer)
 	defer di.RemoveContainer(ctx, con_id)
 
 	if err := di.ConnectNetwork(ctx, net_id, con_id); err != nil {
-		t.Errorf("got error: %s", err)
+		t.Errorf("got error connecting network: %s", err)
 	}
 
 	if err := di.DisconnectNetwork(ctx, net_id, con_id); err != nil {
-		t.Errorf("got error: %s", err)
+		t.Errorf("got error disconnecting network: %s", err)
+	}
+}
+
+// Test PruneNetworks
+func TestPruneNetworks(t *testing.T) {
+	ctx := context.TODO()
+	di, _ := NewInterface(ctx)
+	want := di.NumNetworks()
+
+	testNetwork := map[string]string{"name": "prune_network"}
+
+	net_id, _ := di.NewNetwork(ctx, testNetwork)
+
+	if err := di.PruneNetworks(ctx); err != nil {
+		t.Errorf("got error pruning networks: %s", err)
+		di.RemoveNetwork(ctx, net_id)
+	}
+
+	if di.NumNetworks() != want {
+		t.Errorf("got %d networks, want %d", di.NumNetworks(), want)
+		di.RemoveNetwork(ctx, net_id)
 	}
 }
