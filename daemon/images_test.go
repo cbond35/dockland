@@ -54,3 +54,13 @@ func TestSearchImages(t *testing.T) {
 		t.Errorf("got %d images in search, want %d", len(results), want)
 	}
 }
+
+// TestPruneImages
+func TestPruneImages(t *testing.T) {
+	ctx := context.TODO()
+	di, _ := NewInterface(ctx)
+
+	if err := di.PruneImages(ctx); err != nil {
+		t.Errorf("got error pruning images: %s", err)
+	}
+}

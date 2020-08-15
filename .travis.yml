@@ -19,4 +19,4 @@ before_install:
   - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
 
 os: linux
-dist: bionic
+dist: focal
