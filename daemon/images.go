@@ -5,12 +5,11 @@ import (
 	"context"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/registry"
 )
 
 // Maximum number of results from a search.
-var MaxResults int = 10
+var MAX_IMAGE_RESULTS int = 10
 
 // PullImage pulls the image with the given img name.
 func (di *DockerInterface) PullImage(ctx context.Context, img string) error {
@@ -40,24 +39,15 @@ func (di *DockerInterface) RemoveImage(ctx context.Context, id string) error {
 	return di.RefreshImages(ctx)
 }
 
-// SearchImages searches the registry for term.
-func (di *DockerInterface) SearchImage(ctx context.Context, term string) ([]registry.SearchResult, error) {
-	results, err := di.Client.ImageSearch(ctx, term, types.ImageSearchOptions{Limit: MaxResults})
+// SearchImages searches the registry for the given image.
+func (di *DockerInterface) SearchImage(ctx context.Context, image string) ([]registry.SearchResult, error) {
+	results, err := di.Client.ImageSearch(ctx, image, types.ImageSearchOptions{Limit: MAX_IMAGE_RESULTS})
 
 	if err != nil {
 		return nil, err
 	}
 
 	return results, nil
-}
-
-// PruneImages removes dangling images.
-func (di *DockerInterface) PruneImages(ctx context.Context) error {
-	if _, err := di.Client.ImagesPrune(ctx, filters.Args{}); err != nil {
-		return err
-	}
-
-	return di.RefreshImages(ctx)
 }
 
 // NumImages return the number of images.

@@ -62,7 +62,6 @@ func TestNewNetwork(t *testing.T) {
 		defer di.RemoveNetwork(ctx, id)
 
 		network := getNetwork(id)
-
 		want := table.fields
 		got := networkCompare{
 			network.Name, network.Scope, network.Driver,
@@ -112,26 +111,5 @@ func TestConnectDisconnectNetwork(t *testing.T) {
 
 	if err := di.DisconnectNetwork(ctx, net_id, con_id); err != nil {
 		t.Errorf("got error disconnecting network: %s", err)
-	}
-}
-
-// Test PruneNetworks
-func TestPruneNetworks(t *testing.T) {
-	ctx := context.TODO()
-	di, _ := NewInterface(ctx)
-	want := di.NumNetworks()
-
-	testNetwork := map[string]string{"name": "prune_network"}
-
-	net_id, _ := di.NewNetwork(ctx, testNetwork)
-
-	if err := di.PruneNetworks(ctx); err != nil {
-		t.Errorf("got error pruning networks: %s", err)
-		di.RemoveNetwork(ctx, net_id)
-	}
-
-	if di.NumNetworks() != want {
-		t.Errorf("got %d networks, want %d", di.NumNetworks(), want)
-		di.RemoveNetwork(ctx, net_id)
 	}
 }

@@ -6,7 +6,6 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
 )
@@ -30,11 +29,6 @@ func newContainerConfig(opts map[string]string) *containerConfig {
 	}
 
 	config.Config.Image = opts["image"]
-
-	config.Config.AttachStdin = true
-	config.Config.AttachStdout = true
-	config.Config.AttachStderr = true
-
 	port := opts["port"]
 	hostPort := opts["hostPort"]
 	hostIP := opts["hostIP"]
@@ -45,7 +39,7 @@ func newContainerConfig(opts map[string]string) *containerConfig {
 		}
 
 		bindings := []nat.PortBinding{
-			nat.PortBinding{HostIP: hostIP, HostPort: hostPort},
+			{HostIP: hostIP, HostPort: hostPort},
 		}
 
 		portMap := nat.PortMap{nat.Port(port + "/tcp"): bindings}
@@ -63,7 +57,8 @@ func newContainerConfig(opts map[string]string) *containerConfig {
 
 // NewContainer creates a new container with the provided options and
 // returns the container's ID.
-func (di *DockerInterface) NewContainer(ctx context.Context, opts map[string]string) (string, error) {
+func (di *DockerInterface) NewContainer(ctx context.Context,
+	opts map[string]string) (string, error) {
 	config := newContainerConfig(opts)
 
 	response, err := di.Client.ContainerCreate(
@@ -109,7 +104,8 @@ func (di *DockerInterface) StartContainer(ctx context.Context, id string) error 
 }
 
 // RenameContainer renames a container to name.
-func (di *DockerInterface) RenameContainer(ctx context.Context, id string, name string) error {
+func (di *DockerInterface) RenameContainer(ctx context.Context,
+	id string, name string) error {
 	if err := di.Client.ContainerRename(ctx, id, name); err != nil {
 		return err
 	}
@@ -125,15 +121,6 @@ func (di *DockerInterface) RemoveContainer(ctx context.Context, id string) error
 	}
 
 	return nil
-}
-
-// PruneContainers deletes any unused container data.
-func (di *DockerInterface) PruneContainers(ctx context.Context) error {
-	if _, err := di.Client.ContainersPrune(ctx, filters.Args{}); err != nil {
-		return err
-	}
-
-	return di.RefreshContainers(ctx)
 }
 
 // NumStopped returns the current number of containers.
