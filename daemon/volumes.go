@@ -7,9 +7,9 @@ import (
 	"github.com/docker/docker/api/types/volume"
 )
 
-// newVolumeConfig takes a map of options and creates the necessary
+// newVolumeCreateBody takes a map of options and creates the necessary
 // configuration struct to create a new volume.
-func newVolumeConfig(opts map[string]string) *volume.VolumeCreateBody {
+func newVolumeCreateBody(opts map[string]string) *volume.VolumeCreateBody {
 	config := &volume.VolumeCreateBody{
 		Name:       opts["name"],
 		Driver:     opts["driver"],
@@ -39,7 +39,7 @@ func newVolumeConfig(opts map[string]string) *volume.VolumeCreateBody {
 // NewVolume creates a new volume with the provided options and returns the
 // volume's name.
 func (di *DockerInterface) NewVolume(ctx context.Context, opts map[string]string) (string, error) {
-	config := *newVolumeConfig(opts)
+	config := *newVolumeCreateBody(opts)
 
 	response, err := di.Client.VolumeCreate(
 		ctx,

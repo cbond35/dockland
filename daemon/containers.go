@@ -10,18 +10,10 @@ import (
 	"github.com/docker/go-connections/nat"
 )
 
-// Options for creating a new container.
-type containerConfig struct {
-	Config           *container.Config
-	HostConfig       *container.HostConfig
-	NetworkingConfig *network.NetworkingConfig
-	Name             string
-}
-
-// newContainerConfig takes a map of options and creates the necessary
+// newContainerCreateConfig takes a map of options and creates the necessary
 // configuration structs to create a new container.
-func newContainerConfig(opts map[string]string) *containerConfig {
-	config := &containerConfig{
+func newContainerCreateConfig(opts map[string]string) *types.ContainerCreateConfig {
+	config := &types.ContainerCreateConfig{
 		Config:           &container.Config{},
 		HostConfig:       &container.HostConfig{},
 		NetworkingConfig: &network.NetworkingConfig{},
@@ -58,7 +50,7 @@ func newContainerConfig(opts map[string]string) *containerConfig {
 // returns the container's ID.
 func (di *DockerInterface) NewContainer(ctx context.Context,
 	opts map[string]string) (string, error) {
-	config := newContainerConfig(opts)
+	config := newContainerCreateConfig(opts)
 
 	response, err := di.Client.ContainerCreate(
 		ctx,
@@ -113,7 +105,7 @@ func (di *DockerInterface) RemoveContainer(ctx context.Context, id string) error
 		ctx, id, types.ContainerRemoveOptions{Force: true}); err != nil {
 		return err
 	}
-	return nil
+	return di.RefreshContainers(ctx)
 }
 
 // NumContainers returns the current number of containers.

@@ -21,7 +21,7 @@ func newNetworkConfig(opts map[string]string) *networkConfig {
 		Name:   opts["name"],
 	}
 
-	config.Config.Driver = opts["driver"] // Defaults to bridge/local.
+	config.Config.Driver = opts["driver"]
 	config.Config.Scope = opts["scope"]
 	config.Config.Attachable = true
 

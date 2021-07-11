@@ -85,19 +85,18 @@ func TestRemoveNetwork(t *testing.T) {
 	if err := di.RemoveNetwork(ctx, id); err != nil {
 		t.Errorf("got error removing network: %s", err)
 	}
-
 	if di.NumNetworks() != want {
 		t.Errorf("got %d networks, want %d", di.NumNetworks(), want)
 	}
 }
 
-// TestConnectNetwork + TestDisconnectNetwork
-func TestConnectDisconnectNetwork(t *testing.T) {
+// TestConnectNetwork
+func TestConnectNetwork(t *testing.T) {
 	ctx := context.TODO()
 	di, _ := NewInterface(ctx)
 
 	testNetwork := map[string]string{"name": "test_network"}
-	testContainer := map[string]string{"name": "test_container", "cmd": "bash"}
+	testContainer := map[string]string{"name": "test_container", "image": "nginx"}
 
 	netID, _ := di.NewNetwork(ctx, testNetwork)
 	defer di.RemoveNetwork(ctx, netID)
@@ -108,6 +107,22 @@ func TestConnectDisconnectNetwork(t *testing.T) {
 	if err := di.ConnectNetwork(ctx, netID, conID); err != nil {
 		t.Errorf("got error connecting network: %s", err)
 	}
+}
+
+// TestDisconnectNetwork
+func TestDisconnectNetwork(t *testing.T) {
+	ctx := context.TODO()
+	di, _ := NewInterface(ctx)
+
+	testNetwork := map[string]string{"name": "test_network"}
+	testContainer := map[string]string{"name": "test_container", "image": "nginx"}
+
+	netID, _ := di.NewNetwork(ctx, testNetwork)
+	defer di.RemoveNetwork(ctx, netID)
+
+	conID, _ := di.NewContainer(ctx, testContainer)
+	di.ConnectNetwork(ctx, netID, conID)
+	defer di.RemoveContainer(ctx, conID)
 
 	if err := di.DisconnectNetwork(ctx, netID, conID); err != nil {
 		t.Errorf("got error disconnecting network: %s", err)

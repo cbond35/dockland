@@ -86,7 +86,6 @@ func TestRemoveVolume(t *testing.T) {
 	if err := di.RemoveVolume(ctx, name); err != nil {
 		t.Errorf("got error removing volume: %s", name)
 	}
-
 	if di.NumVolumes() != want {
 		t.Errorf("got %d volumes, want %d", di.NumVolumes(), want)
 	}

@@ -32,7 +32,6 @@ func TestRemoveImage(t *testing.T) {
 	if err := di.RemoveImage(ctx, "alpine"); err != nil {
 		t.Errorf("got error removing image: %s", err)
 	}
-
 	if di.NumImages() != want {
 		t.Errorf("got %d images, want %d", di.NumImages(), want)
 	}
