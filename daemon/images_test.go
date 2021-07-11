@@ -42,7 +42,7 @@ func TestRemoveImage(t *testing.T) {
 func TestSearchImages(t *testing.T) {
 	ctx := context.TODO()
 	di, _ := NewInterface(ctx)
-	want := MAX_IMAGE_RESULTS
+	want := MaxImageResults
 
 	results, err := di.SearchImage(ctx, "alpine")
 

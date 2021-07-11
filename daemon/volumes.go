@@ -18,18 +18,18 @@ func newVolumeConfig(opts map[string]string) *volume.VolumeCreateBody {
 	}
 
 	for _, label := range strings.Split(opts["labels"], ",") {
-		key_value := strings.SplitN(label, "=", 2)
+		optValue := strings.SplitN(label, "=", 2)
 
-		if len(key_value) > 1 {
-			config.Labels[key_value[0]] = key_value[1]
+		if len(optValue) > 1 {
+			config.Labels[optValue[0]] = optValue[1]
 		}
 	}
 
-	for _, driver_opt := range strings.Split(opts["options"], ",") {
-		key_value := strings.SplitN(driver_opt, "=", 2)
+	for _, driverOpt := range strings.Split(opts["options"], ",") {
+		optValue := strings.SplitN(driverOpt, "=", 2)
 
-		if len(key_value) > 1 {
-			config.DriverOpts[key_value[0]] = key_value[1]
+		if len(optValue) > 1 {
+			config.DriverOpts[optValue[0]] = optValue[1]
 		}
 	}
 

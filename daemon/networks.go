@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/api/types/network"
 )
 
@@ -37,7 +36,6 @@ func newNetworkConfig(opts map[string]string) *networkConfig {
 	if opts["internal"] != "" {
 		config.Config.Internal = true
 	}
-
 	return config
 }
 
@@ -54,7 +52,6 @@ func (di *DockerInterface) NewNetwork(ctx context.Context, opts map[string]strin
 	if err != nil {
 		return "", err
 	}
-
 	return response.ID, di.RefreshNetworks(ctx)
 }
 
@@ -63,7 +60,6 @@ func (di *DockerInterface) RemoveNetwork(ctx context.Context, id string) error {
 	if err := di.Client.NetworkRemove(ctx, id); err != nil {
 		return err
 	}
-
 	return di.RefreshNetworks(ctx)
 }
 
@@ -73,7 +69,6 @@ func (di *DockerInterface) ConnectNetwork(ctx context.Context, net, container st
 		ctx, net, container, &network.EndpointSettings{}); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -82,17 +77,7 @@ func (di *DockerInterface) DisconnectNetwork(ctx context.Context, net, container
 	if err := di.Client.NetworkDisconnect(ctx, net, container, true); err != nil {
 		return err
 	}
-
 	return nil
-}
-
-// PruneNetworks removes any unused networks.
-func (di *DockerInterface) PruneNetworks(ctx context.Context) error {
-	if _, err := di.Client.NetworksPrune(ctx, filters.Args{}); err != nil {
-		return err
-	}
-
-	return di.RefreshNetworks(ctx)
 }
 
 // NumNetworks returns the current number of networks.

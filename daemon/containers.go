@@ -51,7 +51,6 @@ func newContainerConfig(opts map[string]string) *containerConfig {
 			config.Config.Cmd = append(config.Config.Cmd, arg)
 		}
 	}
-
 	return config
 }
 
@@ -71,7 +70,6 @@ func (di *DockerInterface) NewContainer(ctx context.Context,
 	if err != nil {
 		return "", err
 	}
-
 	return response.ID, di.RefreshContainers(ctx)
 }
 
@@ -80,7 +78,6 @@ func (di *DockerInterface) RestartContainer(ctx context.Context, id string) erro
 	if err := di.Client.ContainerRestart(ctx, id, nil); err != nil {
 		return err
 	}
-
 	return di.RefreshContainers(ctx)
 }
 
@@ -89,7 +86,6 @@ func (di *DockerInterface) StopContainer(ctx context.Context, id string) error {
 	if err := di.Client.ContainerStop(ctx, id, nil); err != nil {
 		return err
 	}
-
 	return di.RefreshContainers(ctx)
 }
 
@@ -99,7 +95,6 @@ func (di *DockerInterface) StartContainer(ctx context.Context, id string) error 
 		ctx, id, types.ContainerStartOptions{}); err != nil {
 		return err
 	}
-
 	return di.RefreshContainers(ctx)
 }
 
@@ -109,7 +104,6 @@ func (di *DockerInterface) RenameContainer(ctx context.Context,
 	if err := di.Client.ContainerRename(ctx, id, name); err != nil {
 		return err
 	}
-
 	return di.RefreshContainers(ctx)
 }
 
@@ -119,11 +113,10 @@ func (di *DockerInterface) RemoveContainer(ctx context.Context, id string) error
 		ctx, id, types.ContainerRemoveOptions{Force: true}); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-// NumStopped returns the current number of containers.
+// NumContainers returns the current number of containers.
 func (di *DockerInterface) NumContainers() int {
 	return len(di.Containers)
 }

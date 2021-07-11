@@ -34,7 +34,6 @@ func (di *DockerInterface) RefreshContainers(ctx context.Context) error {
 		ctx, types.ContainerListOptions{All: true}); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -47,7 +46,6 @@ func (di *DockerInterface) RefreshImages(ctx context.Context) error {
 		ctx, types.ImageListOptions{All: true}); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -59,7 +57,6 @@ func (di *DockerInterface) RefreshInfo(ctx context.Context) error {
 	if di.Info, err = di.Client.Info(ctx); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -72,7 +69,6 @@ func (di *DockerInterface) RefreshNetworks(ctx context.Context) error {
 		ctx, types.NetworkListOptions{}); err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -99,7 +95,7 @@ func NewInterface(ctx context.Context) (*DockerInterface, error) {
 	di.Client, err = client.NewClientWithOpts(
 		client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	if err = di.RefreshContainers(ctx); err != nil {
@@ -121,6 +117,5 @@ func NewInterface(ctx context.Context) (*DockerInterface, error) {
 	if err = di.RefreshVolumes(ctx); err != nil {
 		return nil, err
 	}
-
 	return di, nil
 }

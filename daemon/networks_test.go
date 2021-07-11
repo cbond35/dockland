@@ -99,17 +99,17 @@ func TestConnectDisconnectNetwork(t *testing.T) {
 	testNetwork := map[string]string{"name": "test_network"}
 	testContainer := map[string]string{"name": "test_container", "cmd": "bash"}
 
-	net_id, _ := di.NewNetwork(ctx, testNetwork)
-	defer di.RemoveNetwork(ctx, net_id)
+	netID, _ := di.NewNetwork(ctx, testNetwork)
+	defer di.RemoveNetwork(ctx, netID)
 
-	con_id, _ := di.NewContainer(ctx, testContainer)
-	defer di.RemoveContainer(ctx, con_id)
+	conID, _ := di.NewContainer(ctx, testContainer)
+	defer di.RemoveContainer(ctx, conID)
 
-	if err := di.ConnectNetwork(ctx, net_id, con_id); err != nil {
+	if err := di.ConnectNetwork(ctx, netID, conID); err != nil {
 		t.Errorf("got error connecting network: %s", err)
 	}
 
-	if err := di.DisconnectNetwork(ctx, net_id, con_id); err != nil {
+	if err := di.DisconnectNetwork(ctx, netID, conID); err != nil {
 		t.Errorf("got error disconnecting network: %s", err)
 	}
 }

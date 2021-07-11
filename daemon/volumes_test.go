@@ -41,12 +41,13 @@ func TestNewVolume(t *testing.T) {
 		},
 		{
 			map[string]string{"name": "test2", "labels": "case=2"},
-			volumeCompare{"test2", "local", map[string]string{"case": "2"}, map[string]string{}},
+			volumeCompare{"test2", "local", map[string]string{"case": "2"},
+				map[string]string{}},
 		},
 		{
 			map[string]string{"name": "test3", "options": "type=tmpfs,device=tmpfs"},
-			volumeCompare{"test3", "local", map[string]string{}, map[string]string{
-				"type": "tmpfs", "device": "tmpfs"}},
+			volumeCompare{"test3", "local", map[string]string{},
+				map[string]string{"type": "tmpfs", "device": "tmpfs"}},
 		},
 	}
 
