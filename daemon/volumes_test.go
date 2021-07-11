@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -17,16 +18,15 @@ type volumeCompare struct {
 }
 
 // Get volume resource by name.
-func getVolume(name string) *types.Volume {
+func getVolume(name string) (*types.Volume, error) {
 	di, _ := NewInterface(context.TODO())
 
 	for _, volume := range di.Volumes {
 		if volume.Name == name {
-			return volume
+			return volume, nil
 		}
 	}
-
-	return &types.Volume{}
+	return &types.Volume{}, fmt.Errorf("no volume %s found", name)
 }
 
 // TestNewVolume
@@ -58,11 +58,18 @@ func TestNewVolume(t *testing.T) {
 		name, err := di.NewVolume(ctx, table.opts)
 
 		if err != nil {
-			t.Errorf("got error creating volume: %s", err)
+			t.Logf("got error creating volume: %s", err)
+			t.FailNow()
 		}
 		defer di.RemoveVolume(ctx, name)
 
-		volume := getVolume(name)
+		volume, err := getVolume(name)
+		if err != nil {
+			t.Logf("got error finding volume: %s", err)
+			t.FailNow()
+
+		}
+
 		want := table.fields
 		got := volumeCompare{
 			volume.Name, volume.Driver, volume.Labels, volume.Options}
@@ -84,7 +91,8 @@ func TestRemoveVolume(t *testing.T) {
 	name, _ := di.NewVolume(ctx, testVolume)
 
 	if err := di.RemoveVolume(ctx, name); err != nil {
-		t.Errorf("got error removing volume: %s", name)
+		t.Logf("got error removing volume: %s", name)
+		t.FailNow()
 	}
 	if di.NumVolumes() != want {
 		t.Errorf("got %d volumes, want %d", di.NumVolumes(), want)

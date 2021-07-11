@@ -12,7 +12,8 @@ func TestPullImage(t *testing.T) {
 	want := di.NumImages() + 1
 
 	if err := di.PullImage(ctx, "alpine"); err != nil {
-		t.Errorf("got error pulling image: %s", err)
+		t.Logf("got error pulling image: %s", err)
+		t.FailNow()
 	}
 	defer di.RemoveImage(ctx, "alpine")
 
@@ -30,7 +31,8 @@ func TestRemoveImage(t *testing.T) {
 	di.PullImage(ctx, "alpine")
 
 	if err := di.RemoveImage(ctx, "alpine"); err != nil {
-		t.Errorf("got error removing image: %s", err)
+		t.Logf("got error removing image: %s", err)
+		t.FailNow()
 	}
 	if di.NumImages() != want {
 		t.Errorf("got %d images, want %d", di.NumImages(), want)
@@ -46,7 +48,8 @@ func TestSearchImages(t *testing.T) {
 	results, err := di.SearchImage(ctx, "alpine")
 
 	if err != nil {
-		t.Errorf("got error searching images: %s", err)
+		t.Logf("got error searching images: %s", err)
+		t.FailNow()
 	}
 
 	if len(results) != want {

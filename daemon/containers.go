@@ -6,7 +6,6 @@ import (
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
-	"github.com/docker/docker/api/types/network"
 	"github.com/docker/go-connections/nat"
 )
 
@@ -14,13 +13,15 @@ import (
 // configuration structs to create a new container.
 func newContainerCreateConfig(opts map[string]string) *types.ContainerCreateConfig {
 	config := &types.ContainerCreateConfig{
-		Config:           &container.Config{},
-		HostConfig:       &container.HostConfig{},
-		NetworkingConfig: &network.NetworkingConfig{},
-		Name:             opts["name"],
+		Config:     &container.Config{},
+		HostConfig: &container.HostConfig{},
+		Name:       opts["name"],
 	}
 
 	config.Config.Image = opts["image"]
+	config.Config.AttachStdout = true
+	config.Config.AttachStderr = true
+
 	port := opts["port"]
 	hostPort := opts["hostPort"]
 	hostIP := opts["hostIP"]
@@ -32,16 +33,26 @@ func newContainerCreateConfig(opts map[string]string) *types.ContainerCreateConf
 
 		bindings := []nat.PortBinding{
 			{HostIP: hostIP, HostPort: hostPort},
+			{HostIP: "::", HostPort: hostPort},
 		}
-
-		portMap := nat.PortMap{nat.Port(port + "/tcp"): bindings}
-		config.HostConfig.PortBindings = portMap
+		config.HostConfig.PortBindings = nat.PortMap{nat.Port(port + "/tcp"): bindings}
 	}
 
+	if env := opts["env"]; env != "" {
+		for _, arg := range strings.Split(env, ",") {
+			config.Config.Env = append(config.Config.Env, strings.TrimSpace(arg))
+		}
+	}
 	if cmd := opts["cmd"]; cmd != "" {
 		for _, arg := range strings.Split(cmd, ",") {
-			config.Config.Cmd = append(config.Config.Cmd, arg)
+			config.Config.Cmd = append(config.Config.Cmd, strings.TrimSpace(arg))
 		}
+	}
+	if entryPoint := opts["entrypoint"]; entryPoint != "" {
+		for _, arg := range strings.Split(entryPoint, ",") {
+			config.Config.Entrypoint = append(config.Config.Entrypoint, strings.TrimSpace(arg))
+		}
+
 	}
 	return config
 }
@@ -56,12 +67,14 @@ func (di *DockerInterface) NewContainer(ctx context.Context,
 		ctx,
 		config.Config,
 		config.HostConfig,
-		config.NetworkingConfig,
+		nil,
+		nil,
 		config.Name)
 
 	if err != nil {
 		return "", err
 	}
+
 	return response.ID, di.RefreshContainers(ctx)
 }
 

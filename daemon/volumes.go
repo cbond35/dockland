@@ -21,7 +21,7 @@ func newVolumeCreateBody(opts map[string]string) *volume.VolumeCreateBody {
 		optValue := strings.SplitN(label, "=", 2)
 
 		if len(optValue) > 1 {
-			config.Labels[optValue[0]] = optValue[1]
+			config.Labels[strings.TrimSpace(optValue[0])] = optValue[1]
 		}
 	}
 
@@ -29,7 +29,7 @@ func newVolumeCreateBody(opts map[string]string) *volume.VolumeCreateBody {
 		optValue := strings.SplitN(driverOpt, "=", 2)
 
 		if len(optValue) > 1 {
-			config.DriverOpts[optValue[0]] = optValue[1]
+			config.DriverOpts[strings.TrimSpace(optValue[0])] = optValue[1]
 		}
 	}
 

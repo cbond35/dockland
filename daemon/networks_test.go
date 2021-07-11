@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/docker/docker/api/types"
@@ -18,16 +19,15 @@ type networkCompare struct {
 }
 
 // Get network resource by id.
-func getNetwork(id string) types.NetworkResource {
+func getNetwork(id string) (types.NetworkResource, error) {
 	di, _ := NewInterface(context.TODO())
 
 	for _, network := range di.Networks {
 		if network.ID == id {
-			return network
+			return network, nil
 		}
 	}
-
-	return types.NetworkResource{}
+	return types.NetworkResource{}, fmt.Errorf("no network %s found", id)
 }
 
 // TestNewNetwork
@@ -57,11 +57,17 @@ func TestNewNetwork(t *testing.T) {
 		id, err := di.NewNetwork(ctx, table.opts)
 
 		if err != nil {
-			t.Errorf("got error creating network: %s", err)
+			t.Logf("got error creating network: %s", err)
+			t.FailNow()
 		}
 		defer di.RemoveNetwork(ctx, id)
 
-		network := getNetwork(id)
+		network, err := getNetwork(id)
+		if err != nil {
+			t.Logf("got error finding network: %s", err)
+			t.FailNow()
+		}
+
 		want := table.fields
 		got := networkCompare{
 			network.Name, network.Scope, network.Driver,
@@ -83,7 +89,8 @@ func TestRemoveNetwork(t *testing.T) {
 	id, _ := di.NewNetwork(ctx, testNetwork)
 
 	if err := di.RemoveNetwork(ctx, id); err != nil {
-		t.Errorf("got error removing network: %s", err)
+		t.Logf("got error removing network: %s", err)
+		t.FailNow()
 	}
 	if di.NumNetworks() != want {
 		t.Errorf("got %d networks, want %d", di.NumNetworks(), want)
