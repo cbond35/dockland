@@ -6,6 +6,7 @@ package daemon
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -32,7 +33,7 @@ func (di *DockerInterface) RefreshContainers(ctx context.Context) error {
 
 	if di.Containers, err = di.Client.ContainerList(
 		ctx, types.ContainerListOptions{All: true}); err != nil {
-		return err
+		return fmt.Errorf("failed to refresh container list: %s", err)
 	}
 	return nil
 }
@@ -44,7 +45,7 @@ func (di *DockerInterface) RefreshImages(ctx context.Context) error {
 
 	if di.Images, err = di.Client.ImageList(
 		ctx, types.ImageListOptions{All: true}); err != nil {
-		return err
+		return fmt.Errorf("failed to refresh image list: %s", err)
 	}
 	return nil
 }
@@ -55,7 +56,7 @@ func (di *DockerInterface) RefreshInfo(ctx context.Context) error {
 	var err error
 
 	if di.Info, err = di.Client.Info(ctx); err != nil {
-		return err
+		return fmt.Errorf("failed to refresh docker data: %s", err)
 	}
 	return nil
 }
@@ -67,7 +68,7 @@ func (di *DockerInterface) RefreshNetworks(ctx context.Context) error {
 
 	if di.Networks, err = di.Client.NetworkList(
 		ctx, types.NetworkListOptions{}); err != nil {
-		return err
+		return fmt.Errorf("failed to refresh network list: %s", err)
 	}
 	return nil
 }
@@ -79,7 +80,7 @@ func (di *DockerInterface) RefreshVolumes(ctx context.Context) error {
 	var volumeBody volume.VolumeListOKBody
 
 	if volumeBody, err = di.Client.VolumeList(ctx, filters.Args{}); err != nil {
-		return err
+		return fmt.Errorf("failed to refresh volume list: %s", err)
 	}
 
 	di.Volumes = volumeBody.Volumes

@@ -44,16 +44,13 @@ func TestNewContainer(t *testing.T) {
 			containerCompare{"/test2", "nginx", 80, 8080, "::"},
 		},
 		{
-			map[string]string{"name": "test3", "image": "nginx", "env": "IS_TEST=TRUE, AUTHOR=CBBOND"},
+			map[string]string{"name": "test3", "image": "nginx", "env": "IS_TEST=TRUE"},
 			containerCompare{"/test3", "nginx", 80, 0, ""},
 		},
 		{
-			map[string]string{"name": "test4", "image": "nginx", "cmd": "/bin/echo, 'Hello World'"},
-			containerCompare{"/test4", "nginx", 80, 0, ""},
-		},
-		{
-			map[string]string{"name": "test5", "image": "nginx", "entrypoint": "/bin/echo, 'Hello World'"},
-			containerCompare{"/test5", "nginx", 80, 0, ""},
+			map[string]string{"name": "test4", "image": "alpine",
+				"entrypoint": "/bin/echo", "cmd": "Hello World!"},
+			containerCompare{"/test4", "alpine", 0, 0, "::"},
 		},
 	}
 

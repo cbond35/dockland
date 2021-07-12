@@ -11,7 +11,7 @@ func TestPullImage(t *testing.T) {
 	di, _ := NewInterface(ctx)
 	want := di.NumImages() + 1
 
-	if err := di.PullImage(ctx, "alpine"); err != nil {
+	if err := di.PullImage(ctx, "debian"); err != nil {
 		t.Logf("got error pulling image: %s", err)
 		t.FailNow()
 	}

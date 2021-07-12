@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/network"
@@ -50,7 +51,7 @@ func (di *DockerInterface) NewNetwork(ctx context.Context, opts map[string]strin
 		*config.Config)
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create network: %s", err)
 	}
 	return response.ID, di.RefreshNetworks(ctx)
 }
@@ -58,7 +59,7 @@ func (di *DockerInterface) NewNetwork(ctx context.Context, opts map[string]strin
 // RemoveNetwork removes a network.
 func (di *DockerInterface) RemoveNetwork(ctx context.Context, id string) error {
 	if err := di.Client.NetworkRemove(ctx, id); err != nil {
-		return err
+		return fmt.Errorf("failed to remove network: %s", err)
 	}
 	return di.RefreshNetworks(ctx)
 }
@@ -67,7 +68,7 @@ func (di *DockerInterface) RemoveNetwork(ctx context.Context, id string) error {
 func (di *DockerInterface) ConnectNetwork(ctx context.Context, net, container string) error {
 	if err := di.Client.NetworkConnect(
 		ctx, net, container, &network.EndpointSettings{}); err != nil {
-		return err
+		return fmt.Errorf("failed to connect network: %s", err)
 	}
 	return nil
 }
@@ -75,7 +76,7 @@ func (di *DockerInterface) ConnectNetwork(ctx context.Context, net, container st
 // DisconnectNetwork removes a container from a network.
 func (di *DockerInterface) DisconnectNetwork(ctx context.Context, net, container string) error {
 	if err := di.Client.NetworkDisconnect(ctx, net, container, true); err != nil {
-		return err
+		return fmt.Errorf("failed to disconnect network: %s", err)
 	}
 	return nil
 }

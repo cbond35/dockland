@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/docker/docker/api/types/volume"
@@ -46,7 +47,7 @@ func (di *DockerInterface) NewVolume(ctx context.Context, opts map[string]string
 		config)
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create volume: %s", err)
 	}
 
 	return response.Name, di.RefreshVolumes(ctx)
@@ -55,7 +56,7 @@ func (di *DockerInterface) NewVolume(ctx context.Context, opts map[string]string
 // RemoveVolume removes a volume.
 func (di *DockerInterface) RemoveVolume(ctx context.Context, id string) error {
 	if err := di.Client.VolumeRemove(ctx, id, true); err != nil {
-		return err
+		return fmt.Errorf("failed to remove volume: %s", err)
 	}
 
 	return di.RefreshVolumes(ctx)

@@ -2,10 +2,12 @@ package daemon
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 )
 
@@ -52,7 +54,6 @@ func newContainerCreateConfig(opts map[string]string) *types.ContainerCreateConf
 		for _, arg := range strings.Split(entryPoint, ",") {
 			config.Config.Entrypoint = append(config.Config.Entrypoint, strings.TrimSpace(arg))
 		}
-
 	}
 	return config
 }
@@ -62,17 +63,24 @@ func newContainerCreateConfig(opts map[string]string) *types.ContainerCreateConf
 func (di *DockerInterface) NewContainer(ctx context.Context,
 	opts map[string]string) (string, error) {
 	config := newContainerCreateConfig(opts)
+	response, err := di.Client.ContainerCreate(ctx, config.Config,
+		config.HostConfig, nil, nil, config.Name)
 
-	response, err := di.Client.ContainerCreate(
-		ctx,
-		config.Config,
-		config.HostConfig,
-		nil,
-		nil,
-		config.Name)
+	if err == nil {
+		return response.ID, di.RefreshContainers(ctx)
+	} else if client.IsErrNotFound(err) {
+		if err := di.PullImage(ctx, opts["image"]); err != nil {
+			return "", fmt.Errorf("failed to create new container: %s", err)
+		}
+	} else if err != nil {
+		return "", fmt.Errorf("failed to create new container: %s", err)
+	}
+
+	response, err = di.Client.ContainerCreate(ctx, config.Config,
+		config.HostConfig, nil, nil, config.Name)
 
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to create new container: %s", err)
 	}
 
 	return response.ID, di.RefreshContainers(ctx)
@@ -81,7 +89,7 @@ func (di *DockerInterface) NewContainer(ctx context.Context,
 // RestartContainer restarts a running container.
 func (di *DockerInterface) RestartContainer(ctx context.Context, id string) error {
 	if err := di.Client.ContainerRestart(ctx, id, nil); err != nil {
-		return err
+		return fmt.Errorf("failed to restart container: %s", err)
 	}
 	return di.RefreshContainers(ctx)
 }
@@ -89,7 +97,7 @@ func (di *DockerInterface) RestartContainer(ctx context.Context, id string) erro
 // StopContainer stops a running container.
 func (di *DockerInterface) StopContainer(ctx context.Context, id string) error {
 	if err := di.Client.ContainerStop(ctx, id, nil); err != nil {
-		return err
+		return fmt.Errorf("failed to stop container: %s", err)
 	}
 	return di.RefreshContainers(ctx)
 }
@@ -98,7 +106,7 @@ func (di *DockerInterface) StopContainer(ctx context.Context, id string) error {
 func (di *DockerInterface) StartContainer(ctx context.Context, id string) error {
 	if err := di.Client.ContainerStart(
 		ctx, id, types.ContainerStartOptions{}); err != nil {
-		return err
+		return fmt.Errorf("failed to start container: %s", err)
 	}
 	return di.RefreshContainers(ctx)
 }
@@ -107,7 +115,7 @@ func (di *DockerInterface) StartContainer(ctx context.Context, id string) error 
 func (di *DockerInterface) RenameContainer(ctx context.Context,
 	id string, name string) error {
 	if err := di.Client.ContainerRename(ctx, id, name); err != nil {
-		return err
+		return fmt.Errorf("failed to rename container: %s", err)
 	}
 	return di.RefreshContainers(ctx)
 }
@@ -116,7 +124,7 @@ func (di *DockerInterface) RenameContainer(ctx context.Context,
 func (di *DockerInterface) RemoveContainer(ctx context.Context, id string) error {
 	if err := di.Client.ContainerRemove(
 		ctx, id, types.ContainerRemoveOptions{Force: true}); err != nil {
-		return err
+		return fmt.Errorf("failed to remove container: %s", err)
 	}
 	return di.RefreshContainers(ctx)
 }
