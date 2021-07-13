@@ -3,6 +3,7 @@ package daemon
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/docker/docker/api/types"
@@ -17,16 +18,33 @@ type containerCompare struct {
 	hostIP   string
 }
 
-// Get container resource by id.
-func getContainer(id string) (types.Container, error) {
+// Get container resource by name.
+func getContainer(name string) (types.Container, error) {
 	di, _ := NewInterface(context.TODO())
 
 	for _, container := range di.Containers {
-		if container.ID == id {
+		if len(container.Names) > 0 && strings.TrimLeft(container.Names[0], "/") == name {
 			return container, nil
 		}
 	}
-	return types.Container{}, fmt.Errorf("no container %s found", id)
+	return types.Container{}, fmt.Errorf("no container %s found", name)
+}
+
+// TestInspectContainer
+func TestInspectContainer(t *testing.T) {
+	ctx := context.TODO()
+	di, _ := NewInterface(ctx)
+	testContainer := map[string]string{"name": "test_container", "image": "nginx"}
+
+	conID, _ := di.NewContainer(ctx, testContainer)
+	defer di.RemoveContainer(ctx, conID)
+
+	if _, err := di.InspectContainer(ctx, testContainer["name"]); err != nil {
+		t.Errorf("got error inspecting container: %s", err)
+	}
+	if _, err := di.InspectContainer(ctx, "no_such_container"); err == nil {
+		t.Error("expected error inspecting container")
+	}
 }
 
 // TestNewContainer
@@ -37,20 +55,20 @@ func TestNewContainer(t *testing.T) {
 	}{
 		{
 			map[string]string{"name": "test1", "image": "nginx"},
-			containerCompare{"/test1", "nginx", 80, 0, ""},
+			containerCompare{"test1", "nginx", 80, 0, ""},
 		},
 		{
 			map[string]string{"name": "test2", "image": "nginx", "port": "80", "hostPort": "8080"},
-			containerCompare{"/test2", "nginx", 80, 8080, "::"},
+			containerCompare{"test2", "nginx", 80, 8080, "::"},
 		},
 		{
 			map[string]string{"name": "test3", "image": "nginx", "env": "IS_TEST=TRUE"},
-			containerCompare{"/test3", "nginx", 80, 0, ""},
+			containerCompare{"test3", "nginx", 80, 0, ""},
 		},
 		{
 			map[string]string{"name": "test4", "image": "alpine",
 				"entrypoint": "/bin/echo", "cmd": "Hello World!"},
-			containerCompare{"/test4", "alpine", 0, 0, "::"},
+			containerCompare{"test4", "alpine", 0, 0, "::"},
 		},
 	}
 
@@ -71,15 +89,15 @@ func TestNewContainer(t *testing.T) {
 			t.FailNow()
 		}
 
-		container, err := getContainer(id)
+		container, err := getContainer(table.opts["name"])
 		if err != nil {
 			t.Logf("got error finding container: %s", err)
 			t.FailNow()
 		}
 
 		want := table.fields
-		got := containerCompare{
-			container.Names[0], container.Image, 0, 0, "::"}
+		got := containerCompare{strings.TrimLeft(container.Names[0], "/"),
+			container.Image, 0, 0, "::"}
 
 		if len(container.Ports) > 0 {
 			got.port = int(container.Ports[0].PrivatePort)
@@ -162,19 +180,18 @@ func TestRenameContainer(t *testing.T) {
 	defer di.RemoveContainer(ctx, conID)
 
 	if err := di.RenameContainer(ctx, conID, newName); err != nil {
-		t.Errorf("got error renaming container: %s", err)
+		t.Logf("got error renaming container: %s", err)
+		t.FailNow()
 	}
-
-	// TODO: Confirm the container's name has actually been changed.
-	// Will it be useful to implement a GetContainer(name), Network, etc.
-	// for the UI? Will make testing easier as well.
+	if _, err := getContainer(newName); err != nil {
+		t.Errorf("got error finding container: %s", err)
+	}
 }
 
 // TestRemoveContainer
 func TestRemoveContainer(t *testing.T) {
 	ctx := context.TODO()
 	di, _ := NewInterface(ctx)
-	want := di.NumContainers()
 	testContainer := map[string]string{"name": "test_container", "image": "nginx"}
 
 	conID, _ := di.NewContainer(ctx, testContainer)
@@ -183,7 +200,7 @@ func TestRemoveContainer(t *testing.T) {
 		t.Logf("got error renaming container: %s", err)
 		t.FailNow()
 	}
-	if di.NumContainers() != want {
-		t.Errorf("got %d containers, want %d", di.NumContainers(), want)
+	if err := di.RemoveContainer(ctx, "no_such_container"); err == nil {
+		t.Error("expected error removing container")
 	}
 }

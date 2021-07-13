@@ -83,7 +83,6 @@ func TestNewNetwork(t *testing.T) {
 func TestRemoveNetwork(t *testing.T) {
 	ctx := context.TODO()
 	di, _ := NewInterface(ctx)
-	want := di.NumNetworks()
 
 	testNetwork := map[string]string{"name": "test_network"}
 	id, _ := di.NewNetwork(ctx, testNetwork)
@@ -92,8 +91,8 @@ func TestRemoveNetwork(t *testing.T) {
 		t.Logf("got error removing network: %s", err)
 		t.FailNow()
 	}
-	if di.NumNetworks() != want {
-		t.Errorf("got %d networks, want %d", di.NumNetworks(), want)
+	if err := di.RemoveNetwork(ctx, "no_such_network"); err == nil {
+		t.Error("expected error removing network")
 	}
 }
 

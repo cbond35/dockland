@@ -15,7 +15,7 @@ func TestPullImage(t *testing.T) {
 		t.Logf("got error pulling image: %s", err)
 		t.FailNow()
 	}
-	defer di.RemoveImage(ctx, "alpine")
+	defer di.RemoveImage(ctx, "debian")
 
 	if di.NumImages() != want {
 		t.Errorf("got %d images, want %d", di.NumImages(), want)
@@ -26,16 +26,15 @@ func TestPullImage(t *testing.T) {
 func TestRemoveImage(t *testing.T) {
 	ctx := context.TODO()
 	di, _ := NewInterface(ctx)
-	want := di.NumImages()
 
-	di.PullImage(ctx, "alpine")
+	di.PullImage(ctx, "ubuntu")
 
-	if err := di.RemoveImage(ctx, "alpine"); err != nil {
+	if err := di.RemoveImage(ctx, "ubuntu"); err != nil {
 		t.Logf("got error removing image: %s", err)
 		t.FailNow()
 	}
-	if di.NumImages() != want {
-		t.Errorf("got %d images, want %d", di.NumImages(), want)
+	if err := di.RemoveImage(ctx, "no_such_image"); err == nil {
+		t.Error("expected error removing image")
 	}
 }
 
@@ -45,7 +44,7 @@ func TestSearchImages(t *testing.T) {
 	di, _ := NewInterface(ctx)
 	want := MaxImageResults
 
-	results, err := di.SearchImage(ctx, "alpine")
+	results, err := di.SearchImage(ctx, "busybox")
 
 	if err != nil {
 		t.Logf("got error searching images: %s", err)

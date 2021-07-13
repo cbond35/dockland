@@ -85,16 +85,11 @@ func TestNewVolume(t *testing.T) {
 func TestRemoveVolume(t *testing.T) {
 	ctx := context.TODO()
 	di, _ := NewInterface(ctx)
-	want := di.NumVolumes()
 
 	testVolume := map[string]string{"name": "remove_volume"}
 	name, _ := di.NewVolume(ctx, testVolume)
 
 	if err := di.RemoveVolume(ctx, name); err != nil {
-		t.Logf("got error removing volume: %s", name)
-		t.FailNow()
-	}
-	if di.NumVolumes() != want {
-		t.Errorf("got %d volumes, want %d", di.NumVolumes(), want)
+		t.Errorf("got error removing volume: %s", name)
 	}
 }
